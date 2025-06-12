@@ -4,7 +4,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
-  res.send('Olá do meu aplicativo CI/CD! 2.0');
+  res.send('Olá do meu aplicativo CI/CD! 3.0 testando deploy');
 });
 
 app.get('/api/status', (req, res) => {
