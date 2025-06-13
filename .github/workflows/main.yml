@@ -38,7 +38,3 @@ jobs:
       with:
         service-id: 'srv-d15i2mbipnbc7381tdvg' # O ID do seu serviço no Render
         render-token: ${{ secrets.RENDER_API_KEY }} # Variável de ambiente secreta do GitHub Actions
-        # O Render automaticamente pega o service-id e o api-key do ambiente.
-        # No entanto, para clareza, estou explicitando.
-        # A service-id pode ser encontrada na URL do seu serviço no Render ou nas configurações.
-        # Ex: https://dashboard.render.com/web/srv-xxxxxxxxxxxxxxxxxxxx -> srv-xxxxxxxxxxxxxxxxxxxx é o ID
