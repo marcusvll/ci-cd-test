@@ -4,7 +4,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
-  res.send('Testando deploy 3.0');
+  res.send('Testando deploy 4.0');
 });
 
 app.get('/api/status', (req, res) => {
