@@ -39,7 +39,13 @@ jobs:
     
     - name: Executar testes de API Node.js (Newman E2E)
       run: npm run test:e2e # Agora só executa o Newman diretamente
-    # --- FIM DO NOVO FLUXO ---
 
-    # Restante do workflow (Python e deploys) permanece o mesmo
-    # ...
+    - name: Fazer Deploy no Render
+      if: success() # Só executa se os passos anteriores forem bem-sucedidos
+      run: |
+        curl -X POST -d '' "https://api.render.com/deploy/srv-d17i7pgdl3ps73ah0rjg?clearCache=false" \
+        -H "Accept: application/json" \
+        -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}"
+      env:
+        RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }} # Garante que a variável esteja disponível aqui
+    # --- FIM DO NOVO FLUXO ---
