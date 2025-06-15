@@ -1,0 +1,32 @@
+{
+  "name": "ci-cd-test",
+  "version": "1.0.0",
+  "description": "Projeto de demonstração de CI/CD para fábrica de software",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest",
+    "test:e2e": "start-server-and-test start http://localhost:3000 newman run postman_collection.json"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "newman": "^6.1.2",
+    "start-server-and-test": "^2.0.3",
+    "supertest": "^7.0.0"
+  },
+  "jest": {
+    "testMatch": [
+      "<rootDir>/src/**/*.test.js",
+      "<rootDir>/src/**/*.spec.js"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/"
+    ]
+  }
+}
