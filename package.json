@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "test": "jest",
-    "test:e2e": "newman run postman_collection.json" // Agora o Newman é executado diretamente
+    "test:e2e": "newman run postman_collection.json"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +17,7 @@
   "devDependencies": {
     "jest": "^29.7.0",
     "newman": "^6.1.2",
-    "start-server-and-test": "^2.0.3", // Pode remover esta dependência se não for usar mais
+    "start-server-and-test": "^2.0.3",
     "supertest": "^7.0.0"
   },
   "jest": {
