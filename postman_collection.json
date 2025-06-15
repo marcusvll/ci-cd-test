@@ -20,7 +20,7 @@
 							"});\r",
 							"\r",
 							"pm.test(\"Body matches string\", function () {\r",
-							"    pm.expect(pm.response.text()).to.include(\"Olá do meu aplicativo CI/CD!\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"Alterei nas configurações do render o auto deploy!\");\r",
 							"});"
 						],
 						"type": "text/javascript",
