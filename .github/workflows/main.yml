@@ -1,0 +1,87 @@
+# .github/workflows/main.yml
+name: Fábrica de Software Automatizada - CI/CD
+
+on:
+  push:
+    branches:
+      - main # Dispara o workflow em push para a branch main
+
+jobs:
+  # Job para construir e testar todas as partes da aplicação
+  build-and-test:
+    runs-on: ubuntu-latest # O ambiente onde o job será executado
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v4 # Clona o repositório
+
+    # --- Node.js Application (Diretório Raiz) ---
+    - name: Configurar Node.js (v20) e Cache
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: 'package-lock.json' # package-lock.json está na raiz
+    
+    - name: Instalar dependências Node.js
+      run: npm install
+      # Não precisa de working-directory aqui, pois a app Node.js está na raiz
+
+    - name: Executar testes unitários/integração Node.js (Jest)
+      run: npm test
+      # Não precisa de working-directory aqui
+
+    - name: Executar testes de API Node.js (Newman E2E)
+      # Este comando inicia o servidor Node.js localmente, espera que esteja pronto e executa os testes Newman
+      run: npm run test:e2e
+      # Não precisa de working-directory aqui
+
+    # --- Python Service (python-service) ---
+    - name: Configurar Python (v3.9)
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.9'
+
+    - name: Instalar dependências Python
+      run: pip install -r requirements.txt
+      working-directory: python-service/ # Continua necessário, pois python-service é uma subpasta
+
+    - name: Executar testes Python (Pytest)
+      run: pip install pytest && pytest # Instala pytest e executa
+      working-directory: python-service/ # Continua necessário
+
+  # Job para deploy da aplicação Node.js para o Render Web Service
+  deploy-node-app:
+    needs: build-and-test # Só roda se 'build-and-test' for bem-sucedido
+    runs-on: ubuntu-latest
+    env: # A API Key do Render é exposta como variável de ambiente para a CLI
+      RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v4
+
+    - name: Instalar Render CLI
+      run: npm install -g @renderinc/cli # Instala a ferramenta de linha de comando do Render
+
+    - name: Deploy da aplicação Node.js para Render
+      run: render deploy --service-id ${{ secrets.RENDER_NODE_SERVICE_ID }} --build-context . --clear-cache
+      # --build-context .: Informa ao Render para construir a partir da raiz do seu repositório (onde está a app Node.js).
+
+  # Job para deploy do Frontend estático para o Render Static Site
+  deploy-frontend:
+    needs: build-and-test # Só roda se 'build-and-test' for bem-sucedido
+    runs-on: ubuntu-latest
+    env: # A API Key do Render é exposta como variável de ambiente
+      RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v4
+
+    - name: Instalar Render CLI
+      run: npm install -g @renderinc/cli # Instala a ferramenta de linha de comando do Render
+
+    - name: Deploy do Frontend para Render Static Site
+      run: render deploy --service-id ${{ secrets.RENDER_FRONTEND_SERVICE_ID }} --build-context frontend/ --clear-cache
+      # --build-context frontend/: Informa ao Render para construir/publicar a partir da pasta 'frontend/'.
