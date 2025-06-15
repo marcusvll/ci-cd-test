@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "test": "jest",
-    "test:e2e": "npx start-server-and-test start http://localhost:3000 newman run postman_collection.json"
+    "test:e2e": ""test:e2e": "npx start-server-and-test start http://localhost:3000 --wait-on-timeout 60000 --start-and-test-delay 5000 newman run postman_collection.json"
   },
   "keywords": [],
   "author": "",
