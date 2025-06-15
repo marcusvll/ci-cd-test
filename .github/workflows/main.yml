@@ -4,7 +4,7 @@ name: Fábrica de Software Automatizada - CI/CD
 on:
   push:
     branches:
-      - main # Dispara o workflow em push para a branch main
+      - main
 
 jobs:
   build-and-test:
@@ -19,28 +19,27 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
-        cache-dependency-path: 'package-lock.json' # package-lock.json está na raiz
-   
+        cache-dependency-path: 'package-lock.json'
+    
     - name: Instalar dependências Node.js
       run: npm install
-
-    - name: Corrigir permissões de executáveis (Diagnóstico)
-      run: chmod +x ./node_modules/.bin/start-server-and-test && chmod +x ./node_modules/.bin/newman
-    # Adiciona permissão de execução para ambos os binários
-
-    # NOVO PASSO DE DIAGNÓSTICO E CORREÇÃO DE PERMISSÃO
-    - name: Corrigir permissões de executáveis (Diagnóstico)
-      run: |
-        chmod +x ./node_modules/.bin/start-server-and-test
-        chmod +x ./node_modules/.bin/newman
-      # O '|' (pipe) permite comandos multilinhas.
-      # Certifique-se de que o caminho está correto, relativo à raiz do repo.
+      
+    # Removendo o passo de chmod de diagnóstico se o problema de permissão original foi resolvido.
+    # Se você ainda tiver o passo de chmod +x, pode removê-lo agora para simplificar.
 
     - name: Executar testes unitários/integração Node.js (Jest)
       run: npm test
 
-    - name: Executar testes de API Node.js (Newman E2E)
-      run: npm run test:e2e # Agora o npx está no package.json, o que é o correto
+    # --- NOVO FLUXO PARA TESTES E2E ---
+    - name: Iniciar servidor Node.js em background
+      run: npm run start & # O '&' roda o comando em background
     
+    - name: Aguardar servidor Node.js estar pronto (wait-on)
+      run: npm install -g wait-on && wait-on http://localhost:3000 -t 60000 # Instala wait-on e espera por 60s
+    
+    - name: Executar testes de API Node.js (Newman E2E)
+      run: npm run test:e2e # Agora só executa o Newman diretamente
+    # --- FIM DO NOVO FLUXO ---
+
     # Restante do workflow (Python e deploys) permanece o mesmo
     # ...
