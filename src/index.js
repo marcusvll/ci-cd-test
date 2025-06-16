@@ -5,7 +5,7 @@ const port = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
   console.log('Requisição GET / recebida.'); // Log de requisição
-  res.send('Alterei nas configurações do render o auto deploy');
+  res.send('Alterei nas configurações do render o auto deploy alterando - Alterando o código Node');
 });
 
 // --- NOVO: Tratamento de erros ---
