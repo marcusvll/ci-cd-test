@@ -11,7 +11,7 @@ app.get('/', (req, res) => {
 // --- NOVO: Tratamento de erros ---
 app.use((err, req, res, next) => {
     console.error('Erro não tratado na aplicação:', err.stack);
-    res.status(500).send('Algo deu errado, Alterando de NOVO!');
+    res.status(500).send('Algo deu errado!');
 });
 // --- FIM NOVO ---
 
