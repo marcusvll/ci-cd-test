@@ -7,6 +7,6 @@ describe('Testando a rota GET /', () => {
     const res = await request(app).get('/');
     expect(res.statusCode).toEqual(200);
     // ATENÇÃO: Altere a string esperada abaixo
-    expect(res.text).toEqual('Alterei nas configurações do render o auto deploy');
+    expect(res.text).toEqual('Alterei nas configurações do render o auto deploy Novamente');
   });
 });
