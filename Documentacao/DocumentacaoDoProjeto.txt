@@ -1,0 +1,355 @@
+Documentação do Projeto CI/CD (Node.js API com Testes e Deploy Dockerizado)
+Este documento detalha a estrutura, o código e o fluxo de CI/CD implementados para uma aplicação Node.js API, visando a automação de testes e deploy contínuo.
+
+1. Visão Geral do Projeto
+O objetivo principal deste projeto é demonstrar e aplicar conceitos de Integração Contínua (CI) e Entrega Contínua (CD) em uma aplicação Node.js (API simples). O pipeline automatiza a verificação de qualidade do código (testes unitários e de API) e o processo de deploy, garantindo entregas mais rápidas e seguras.
+
+2. Ferramentas Utilizadas
+As seguintes ferramentas são fundamentais para o funcionamento do projeto:
+
+Node.js: Runtime JavaScript para a construção da API.
+Express.js: Framework web para Node.js, utilizado para criar a API.
+Jest: Framework de teste para JavaScript, utilizado para testes unitários/integração.
+Supertest: Biblioteca para testar APIs HTTP, frequentemente usada com Jest para testes de integração.
+Postman: Ferramenta para testar e documentar APIs. Sua funcionalidade de "Collections" é exportada para automação.
+Newman: Executor de linha de comando para coleções Postman, permitindo rodar testes de API em ambientes de CI.
+start-server-and-test: Utilitário para iniciar um servidor e, após ele estar pronto, executar os testes (embora tenha sido substituído por wait-on no GitHub Actions para maior robustez, ele ainda estava presente nas devDependencies).
+wait-on: Ferramenta de linha de comando utilizada no GitHub Actions para aguardar a inicialização de um serviço (no caso, a API Node.js) antes de prosseguir com os testes de API.
+Docker: Plataforma de contêineres utilizada para empacotar a aplicação Node.js e suas dependências, garantindo um ambiente de execução consistente.
+Docker Hub: Registro de contêineres onde a imagem Docker da aplicação é armazenada e de onde o Render a puxa para o deploy.
+GitHub Actions: Plataforma de CI/CD integrada ao GitHub, responsável por automatizar o pipeline (build, testes, push da imagem Docker).
+Render: Plataforma de cloud para deploy contínuo, configurada para puxar e executar a imagem Docker da aplicação.
+3. Hierarquia de Pastas e Arquivos
+A estrutura do projeto na raiz do repositório ci-cd-test é a seguinte:
+
+ci-cd-test/
+├── .github/
+│   └── workflows/
+│       └── main.yml           # Workflow do GitHub Actions
+├── src/
+│   ├── index.js               # Código principal da aplicação Node.js (API)
+│   └── test/ 
+│       └── app.test.js        # Testes unitários/integração com Jest
+├── postman_collection.json    # Coleção de testes de API exportada do Postman
+├── Dockerfile                 # Instruções para construir a imagem Docker
+├── .dockerignore              # Arquivos a serem ignorados pelo Docker
+├── package.json               # Metadados do projeto e scripts npm
+├── package-lock.json          # Bloqueio de versão de dependências do npm
+└── README.md                  # (Opcional) Documentação do projeto
+4. Explicação Detalhada dos Códigos
+4.1. src/index.js (Aplicação Node.js API)
+Este é o arquivo principal da sua aplicação Express.js, que define a API.
+
+JavaScript
+
+// src/index.js
+const express = require('express');
+const app = express();
+const port = 3000; // Ou process.env.PORT || 3000
+
+// Middleware para parsing de JSON (se necessário para rotas POST/PUT)
+app.use(express.json());
+
+// Rota principal
+app.get('/', (req, res) => {
+  console.log('Requisição GET / recebida.'); // Log para depuração
+  res.send('Altere nas configurações do render o auto deploy'); // Mensagem atual da API
+});
+
+// Middleware de tratamento de erros (para capturar erros não tratados em rotas)
+app.use((err, req, res, next) => {
+  console.error('Erro não tratado na aplicação:', err.stack); // Log de erro
+  res.status(500).send('Algo deu errado!');
+});
+
+// Inicia o servidor apenas se não estiver em ambiente de teste (Jest/Supertest)
+// Isso evita que o servidor tente iniciar uma porta que já pode estar em uso pelos testes.
+if (process.env.NODE_ENV !== 'test') {
+  const server = app.listen(port, () => {
+    console.log(`Servidor Node.js rodando em http://localhost:${port}`); // Log de servidor rodando
+  });
+
+  // Tratamento de erros específicos do servidor (ex: porta em uso)
+  server.on('error', (err) => {
+    console.error('Erro ao iniciar o servidor Node.js:', err.message);
+    process.exit(1); // Encerra o processo com código de erro
+  });
+} else {
+  console.log('Aplicação Node.js em modo de teste, não iniciando listener HTTP.');
+}
+
+
+// Exporta o aplicativo para que os testes Jest/Supertest possam importá-lo
+module.exports = app;
+Explicação:
+
+Configura uma aplicação Express simples com uma rota GET /.
+Inclui console.log para depuração no ambiente de CI.
+Exporta a instância do app para ser testada pelo Jest/Supertest.
+Condicionalmente inicia o listener HTTP (app.listen) para evitar conflitos de porta durante os testes.
+Inclui um middleware básico de tratamento de erros e um tratamento para erros de inicialização do servidor.
+4.2. src/test/app.test.js (Testes Unitários/Integração)
+Contém os testes para sua API, utilizando Jest e Supertest.
+
+JavaScript
+
+// src/test/app.test.js
+const request = require('supertest');
+const app = require('../index'); // Importa a instância do app Express
+
+describe('Testando a rota GET /', () => {
+  it('Deve retornar "Altere nas configurações do render o auto deploy"', async () => {
+    const res = await request(app).get('/');
+    expect(res.statusCode).toEqual(200);
+    // Asserção atualizada para corresponder à mensagem da API
+    expect(res.text).toEqual('Altere nas configurações do render o auto deploy');
+  });
+});
+Explicação:
+
+Importa supertest e a instância da aplicação app.
+Define um bloco de testes para a rota /.
+Simula uma requisição GET para a rota e verifica se o status code é 200 e se o corpo da resposta corresponde à string esperada. A string esperada foi ajustada para "Altere nas configurações do render o auto deploy" para resolver a falha de teste.
+4.3. postman_collection.json (Testes de API E2E)
+Este arquivo é a exportação da sua coleção de testes do Postman. Ela contém as requisições HTTP e os scripts de teste (asserções) para validar o comportamento da API.
+
+Exemplo de Conteúdo (simplificado, parte dos testes):
+
+JSON
+
+{
+  "info": {
+    "name": "CI/CD Tests",
+    // ... outros metadados ...
+  },
+  "item": [
+    {
+      "name": "GET New Request",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            ""
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "console.log(\"Response Body:\", pm.response.text());", // Linha de depuração adicionada
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "pm.test(\"Body matches string\", function () {",
+              "    pm.expect(pm.response.text()).to.include(\"Altere nas configurações do render o auto deploy\");", // Asserção ajustada
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "variable": []
+}
+Explicação:
+
+Define uma requisição GET para http://localhost:3000/.
+Na seção event (especificamente test para Post-response scripts), contém asserções JavaScript que verificam o status da resposta (200 OK) e o conteúdo do corpo da resposta.
+Uma linha console.log foi adicionada para depuração no ambiente de CI, mostrando o corpo exato da resposta recebida pelo Newman. A asserção to.include foi ajustada para corresponder ao texto real da API.
+4.4. package.json
+Arquivo de metadados e gerenciamento de dependências do projeto Node.js.
+
+JSON
+
+{
+  "name": "ci-cd-test",
+  "version": "1.0.0",
+  "description": "Projeto de demonstração de CI/CD para fábrica de software",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "jest",
+    "test:e2e": "newman run postman_collection.json"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "newman": "^6.1.2",
+    "start-server-and-test": "^2.0.3",
+    "supertest": "^7.0.0"
+  },
+  "jest": {
+    "testMatch": [
+      "<rootDir>/src/**/*.test.js",
+      "<rootDir>/src/**/*.spec.js"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/"
+    ]
+  }
+}
+Explicação:
+
+Define start para iniciar a aplicação, test para rodar os testes Jest, e test:e2e para rodar a coleção Newman.
+Lista dependencies (para produção) e devDependencies (para desenvolvimento e testes).
+Configuração do Jest para descobrir e ignorar testes.
+4.5. Dockerfile (Adicionado para Dockerização)
+Instruções para construir a imagem Docker da aplicação.
+
+Dockerfile
+
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+EXPOSE 3000
+CMD [ "npm", "start" ]
+Explicação:
+
+Define a imagem base (node:20-alpine).
+Configura o diretório de trabalho.
+Copia package.json, instala dependências e depois copia o restante do código.
+Expõe a porta 3000.
+Define o comando de inicialização.
+4.6. .dockerignore (Adicionado para Dockerização)
+Define arquivos e diretórios a serem ignorados ao construir a imagem Docker.
+
+node_modules
+npm-debug.log
+.DS_Store
+.env
+.git
+.gitignore
+Explicação:
+
+Previne que arquivos desnecessários (como node_modules local, pastas do Git, arquivos de ambiente) sejam incluídos na imagem Docker, tornando-a menor e mais eficiente.
+4.7. .github/workflows/main.yml (Workflow do GitHub Actions)
+Define o pipeline de CI/CD.
+
+YAML
+
+name: Fábrica de Software Automatizada - CI/CD
+
+on:
+  push:
+    branches:
+      - main # Dispara o workflow em push para a branch main
+
+jobs:
+  build-and-test: # Job de CI (Integração Contínua)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js (v20) e Cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
+      
+      - name: Instalar dependências Node.js
+        run: npm install
+
+      - name: Executar testes unitários/integração Node.js (Jest)
+        run: npm test
+
+      - name: Iniciar servidor Node.js em background
+        run: npm run start & # Servidor roda em background
+
+      - name: Aguardar servidor Node.js estar pronto (wait-on)
+        run: npm install -g wait-on && wait-on http://localhost:3000 -t 60000 # Espera a API iniciar
+
+      - name: Executar testes de API Node.js (Newman E2E)
+        run: npm run test:e2e # Executa os testes Newman
+
+  deploy-docker: # NOVO JOB para CD (Deploy Contínuo)
+    runs-on: ubuntu-latest
+    needs: build-and-test # Este job só roda se 'build-and-test' for bem-sucedido
+    if: success() && github.ref == 'refs/heads/main' # Só roda se o job anterior for sucesso e for na main branch
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Fazer Login no Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }} # Secret do GitHub
+          password: ${{ secrets.DOCKER_PASSWORD }} # Secret do GitHub
+
+      - name: Construir e Enviar Imagem Docker
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/ci-cd-test-app:latest # Nome da sua imagem no Docker Hub
+Explicação:
+
+on: push: Dispara o workflow em cada push para a branch main.
+build-and-test Job:
+Checkout do código: Baixa o repositório.
+Configurar Node.js e Cache: Configura o ambiente Node.js e cacheia as dependências.
+Instalar dependências: Instala os pacotes do package.json.
+Executar testes unitários/integração (Jest): Roda os testes definidos em npm test.
+Iniciar servidor Node.js em background: Inicia a aplicação para que os testes de API possam acessá-la. O & é crucial.
+Aguardar servidor Node.js estar pronto (wait-on): Garante que a API esteja acessível antes do Newman.
+Executar testes de API Node.js (Newman E2E): Roda os testes da coleção Postman via Newman.
+deploy-docker Job (CD):
+needs: build-and-test: Só executa se o job build-and-test tiver sucesso.
+Fazer Login no Docker Hub: Autentica com suas credenciais do Docker Hub (armazenadas como GitHub Secrets).
+Construir e Enviar Imagem Docker: Constrói a imagem Docker a partir do Dockerfile e a envia para o Docker Hub, com a tag latest.
+5. Evolução Teórica e Prática do Projeto
+Este projeto evoluiu através de um processo iterativo de implementação e depuração, refletindo os desafios e as melhores práticas de um pipeline de CI/CD real.
+
+5.1. Fase 1: CI Básico (Testes Unitários/Integração)
+Teoria: O objetivo inicial foi estabelecer a Integração Contínua, garantindo que cada alteração no código fosse validada automaticamente por testes.
+Prática:
+Implementação de testes unitários/integração com Jest e Supertest para a API Node.js.
+Criação de um workflow básico no GitHub Actions para executar npm install e npm test.
+Desafios Iniciais: Erros de sintaxe no package.json (EJSONPARSE), configuração de testMatch no Jest para encontrar os testes.
+5.2. Fase 2: Adição de Testes de API (E2E com Newman)
+Teoria: Expandir a cobertura de testes para incluir testes de ponta a ponta (E2E) que simulam o comportamento real de um cliente interagindo com a API.
+Prática:
+Criação de uma coleção Postman com requisições e asserções.
+Exportação da coleção como postman_collection.json.
+Introdução do Newman para executar a coleção na linha de comando.
+Tentativa inicial de usar start-server-and-test para gerenciar a inicialização da API antes do Newman.
+Desafios:
+API sendo "closed unexpectedly" (server closed unexpectedly), indicando que o servidor não estava estável ou demorava muito para iniciar.
+Problemas de Permission denied ao executar start-server-and-test no runner do GitHub Actions.
+Erros de interpretação de argumentos do start-server-and-test (Error: expected <NPM script name>...), mesmo após tentar adicionar o separador --.
+Falhas de asserção em testes de API porque a string esperada no Newman não correspondia exatamente à resposta da API.
+Soluções:
+Ajuste da mensagem da API e dos testes unitários/API para corresponderem.
+Migração da complexidade do start-server-and-test para o workflow do GitHub Actions, usando npm run start & para rodar o servidor em background e wait-on para aguardar a API estar disponível antes de executar o Newman. Esta abordagem se mostrou mais robusta e controlável em ambientes de CI.
+5.3. Fase 3: Contêinerização (Docker) e Deploy Contínuo (Render)
+Teoria: Padronizar o ambiente de execução para eliminar inconsistências entre desenvolvimento, testes e produção, e automatizar o deploy.
+Prática:
+Criação de um Dockerfile para empacotar a aplicação Node.js.
+Criação de um .dockerignore para otimizar o tamanho da imagem.
+Adição de um novo job no GitHub Actions (deploy-docker) para construir a imagem Docker e enviá-la para o Docker Hub, dependendo do sucesso dos testes.
+Configuração de secrets do GitHub (DOCKER_USERNAME, DOCKER_PASSWORD) para autenticação com o Docker Hub.
+Configuração do serviço no Render para puxar e fazer o deploy diretamente da imagem Docker no Docker Hub.
+Resultado: Um pipeline de CI/CD completo, onde cada push para a branch main dispara testes automatizados e, em caso de sucesso, uma nova versão da aplicação é construída como imagem Docker, enviada para o Docker Hub e automaticamente deployada no Render.
