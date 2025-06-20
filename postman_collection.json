@@ -24,7 +24,7 @@
 							"pm.test(\"Body matches string\", function () {\r",
 							"    // Altere esta linha para ser EXATAMENTE o que sua API retorna.\r",
 							"    // Se a API retornar \"Altere nas configurações do render o auto deploy\", use isso:\r",
-							"    pm.expect(pm.response.text()).to.include(\"Testando alterações para subir sem erro - 2\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"Testando alterações para subir sem erro - 3\");\r",
 							"    // Ou, se for exatamente, use toEqual:\r",
 							"    // pm.expect(pm.response.text()).toEqual(\"Altere nas configurações do render o auto deploy\");\r",
 							"});"

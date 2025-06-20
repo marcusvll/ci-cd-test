@@ -5,7 +5,7 @@ const port = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
   console.log('Requisição GET / recebida.'); // Log de requisição
-  res.send('Testando alterações para subir sem erro - 2');
+  res.send('Testando alterações para subir sem erro - 3');
 });
 
 // --- NOVO: Tratamento de erros ---
