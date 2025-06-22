@@ -15,18 +15,15 @@
 					"script": {
 						"exec": [
 							"// No Postman, aba \"Tests\" (Post-response)\r",
-							"console.log(\"Response Body:\", pm.response.text()); // Adicione esta linha!\r",
+							"console.log(\"Response Body:\", pm.response.text());
 							"\r",
 							"pm.test(\"Status code is 200\", function () {\r",
 							"    pm.response.to.have.status(200);\r",
 							"});\r",
 							"\r",
 							"pm.test(\"Body matches string\", function () {\r",
-							"    // Altere esta linha para ser EXATAMENTE o que sua API retorna.\r",
-							"    // Se a API retornar \"Altere nas configurações do render o auto deploy\", use isso:\r",
 							"    pm.expect(pm.response.text()).to.include(\"Testando alterações para subir sem erro - 4\");\r",
-							"    // Ou, se for exatamente, use toEqual:\r",
-							"    // pm.expect(pm.response.text()).toEqual(\"Altere nas configurações do render o auto deploy\");\r",
+
 							"});"
 						],
 						"type": "text/javascript",

@@ -1,70 +1,51 @@
-# .github/workflows/main.yml
 name: Fábrica de Software Automatizada - CI/CD
 
 on:
   push:
     branches:
-      - main # Dispara o workflow em push para a branch main
-  pull_request: # Opcional: Também rodar em Pull Requests para feedback antecipado
+      - main
+  pull_request:
     branches:
       - main
 
 jobs:
-  build-and-test: # Job de CI (Integração Contínua)
+  build-and-test:
     runs-on: ubuntu-latest
-    # Se você está usando o monorepo (frontend/, python-service/, etc.),
-    # considere adicionar um working-directory aqui ou nos passos individuais
-    # para Node.js. Por enquanto, vamos assumir que o fluxo é para o projeto Node.js na raiz.
-    # working-directory: ./ci-cd-test # NÃO USE ISSO AQUI se o seu .github está na raiz do repositório
-                                     # O erro 'Invalid workflow file' pode vir de tentar usar
-                                     # 'working-directory' no nível do job, ou com indentação errada.
-                                     # É mais comum usar nos steps ou no nível do composite action.
-
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Necessário para SonarCloud
+          fetch-depth: 0
 
       - name: Configurar Node.js (v20) e Cache
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: 'package-lock.json' # Caminho relativo ao WORKSPACE (raiz do repo)
+          cache-dependency-path: 'package-lock.json'
 
       - name: Instalar dependências Node.js
         run: npm install
 
-      # Seus passos de migração e seed para SQLite viriam aqui se você os adicionou
-
       - name: Executar testes unitários/integração Node.js (Jest)
-        run: npm test # Isso já vai rodar Jest com as configurações do package.json
+        run: npm test
 
       - name: Iniciar servidor Node.js em background
-        run: npm run start & # Roda a aplicação em background. O '&' é crucial.
+        run: npm run start &
 
       - name: Aguardar servidor Node.js estar pronto (wait-on)
-        # Instala wait-on globalmente (apenas para o runner) e espera a porta
         run: npm install -g wait-on && wait-on http://localhost:3000 -t 60000
 
       - name: Executar testes de API Node.js (Newman E2E)
-        # Este comando agora SÓ roda o newman, pois o servidor já está rodando e sendo esperado
         run: npm run test:e2e
-
-      # Seus passos do SonarCloud viriam aqui (após os testes)
-
-  deploy-docker: # Seu job de deploy
+  deploy-docker:
     runs-on: ubuntu-latest
-    needs: build-and-test # Este job só roda se 'build-and-test' for bem-sucedido
-    if: success() && github.ref == 'refs/heads/main' # Só roda se o job anterior for sucesso e for na main branch
+    needs: build-and-test
+    if: success() && github.ref == 'refs/heads/main'
 
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
-        # Não precisa de fetch-depth aqui, a menos que você tenha um motivo específico.
-        # O aviso de submodule está no 'Post Checkout do codigo'
-        # o que sugere que não está impedindo o checkout principal, mas é algo para investigar se tiver submódulos.
 
       - name: Configurar Docker Buildx
         uses: docker/setup-buildx-action@v3
