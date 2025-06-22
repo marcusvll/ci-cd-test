@@ -9,7 +9,7 @@ app.get('/', (req, res) => {
 });
 
 app.use((err, req, res, next) => {
-    console.error('Erro não tratado na aplicação:', err.stack);
+    console.error('Erro não tratado na aplicação Aqui:', err.stack);
     res.status(500).send('Algo deu errado!*');
 });
 
