@@ -15,15 +15,14 @@
 					"script": {
 						"exec": [
 							"// No Postman, aba \"Tests\" (Post-response)\r",
-							"console.log(\"Response Body:\", pm.response.text());
+							"console.log(\"Response Body:\", pm.response.text()); // Adicione esta linha!\r",
 							"\r",
 							"pm.test(\"Status code is 200\", function () {\r",
 							"    pm.response.to.have.status(200);\r",
 							"});\r",
 							"\r",
 							"pm.test(\"Body matches string\", function () {\r",
-							"    pm.expect(pm.response.text()).to.include(\"Testando alterações para subir sem erro - 4\");\r",
-
+							"    pm.expect(pm.response.text()).to.include(\"Altere nas configurações do render o auto deploy\");\r",
 							"});"
 						],
 						"type": "text/javascript",
