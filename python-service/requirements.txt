@@ -1,2 +1,0 @@
-Flask==2.3.2 # Ou a versão mais recente que preferir
-pytest==7.4.0 # Ou a versão mais recente que preferir
