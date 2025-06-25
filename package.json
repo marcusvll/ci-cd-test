@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "test": "jest",
+    "test": "jest --coverage --coverageReporters=lcov",
     "test:e2e": "newman run postman_collection.json"
   },
   "keywords": [],
