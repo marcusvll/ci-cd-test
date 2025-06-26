@@ -58,9 +58,14 @@ jobs:
 
       - name: Executar Análise SonarCloud
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: sonar-scanner
-
+        run: |
+          sonar-scanner \
+            -Dsonar.projectKey=marcusvll_ci-cd-test \
+            -Dsonar.organization=marcusvll \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.branch.name=main
   deploy-docker:
     runs-on: ubuntu-latest
     needs: [build-and-test, sonarcloud-analysis]
