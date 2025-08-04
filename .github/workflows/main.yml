@@ -65,7 +65,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          projectKey: 'ci-cd-app-test'
+          projectKey: 'ci-cd-test'
           organization: 'marcusvll'
 
   # Job 3: Deploy da aplicação para o ambiente de staging
