@@ -22,7 +22,7 @@
 							"});\r",
 							"\r",
 							"pm.test(\"Body matches string\", function () {\r",
-							"    pm.expect(pm.response.text()).to.include(\"Altere nas configurações do render o auto deploy\");\r",
+							"    pm.expect(pm.response.text()).to.include(\"Alterando nas configurações do render o auto deploy\");\r",
 							"});"
 						],
 						"type": "text/javascript",
