@@ -5,7 +5,7 @@ const port = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
   console.log('Requisição GET / recebida.');
-  res.send('Alterando nas configurações do render o auto deploy');
+  res.send('Alterando nas configurações do render o auto deploy - 2');
 });
 
 app.use((err, req, res, next) => {
